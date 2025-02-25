@@ -15,12 +15,12 @@ interface RouteDao {
     @Delete
     suspend fun delete(route: Route) // Удаление маршрута
 
-    @Query("SELECT * FROM routes WHERE id = :id")
+    @Query("SELECT * FROM route WHERE id = :id")
     suspend fun getRouteById(id: Int): Route? // Получение маршрута по ID
 
-    @Query("SELECT * FROM routes")
+    @Query("SELECT * FROM route")
     fun getAllRoutes(): LiveData<List<Route>> // Получение списка всех маршрутов
 
-    @Query("DELETE FROM routes")
+    @Query("DELETE FROM route")
     suspend fun deleteAllRoutes() // Очистка таблицы маршрутов
 }

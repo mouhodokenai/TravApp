@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 
-@Entity(tableName = "routes")
+@Entity(tableName = "route")
 @TypeConverters(RouteConverters::class) // Указываем, что в этой таблице используется конвертер типов
 data class Route(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,  // Уникальный ID маршрута

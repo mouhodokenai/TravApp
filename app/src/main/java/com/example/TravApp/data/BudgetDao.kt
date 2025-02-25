@@ -18,6 +18,6 @@ interface BudgetDao {
     @Delete
     suspend fun delete(trip: Budget)
 
-    @Query("SELECT * FROM budget WHERE budget_id = :budgetId")
+    @Query("SELECT * FROM budget WHERE budget_id = :id")
     suspend fun getTicketById(tripId: UUID): Budget?
 }

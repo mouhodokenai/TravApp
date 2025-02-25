@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.util.UUID
 
-@Entity(tableName = "trips")
+@Entity(tableName = "trip")
 data class Trip(
     @PrimaryKey val trip_id: UUID = UUID.randomUUID(),  // Уникальный ID поездки
     val title: String,  // Название поездки

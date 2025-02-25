@@ -18,6 +18,4 @@ interface NoteDao {
     @Delete
     suspend fun delete(trip: Note)
 
-    @Query("SELECT * FROM note WHERE note_id = :noteId")
-    suspend fun getTicketById(tripId: UUID): Note?
 }
