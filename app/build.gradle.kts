@@ -27,30 +27,40 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
     }
 }
 
 dependencies {
-    implementation ("androidx.activity:activity-compose:1.6.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2") // ViewModel для Compose
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2") // Работа с ViewModel
-    implementation("androidx.navigation:navigation-compose:2.5.3") // Навигация
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1") // Контроль UI
-    implementation("androidx.room:room-runtime:2.5.2") // Room (БД)
+    implementation("androidx.activity:activity-compose:1.6.0") {
+        exclude(group = "com.intellij", module = "annotations")
+    }
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2") {
+        exclude(group = "com.intellij", module = "annotations")
+    }
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation("androidx.navigation:navigation-compose:2.7.3")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
+    implementation("androidx.room:room-runtime:2.5.2") {
+        exclude(group = "com.intellij", module = "annotations")
+    }
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("com.google.firebase:firebase-storage-ktx:20.3.0")
-    implementation("androidx.navigation:navigation-compose:2.7.3")
 
-    //kapt("androidx.room:room-compiler:2.5.2") // Компилятор Room
+    implementation("com.google.maps.android:maps-compose:2.11.4")
+    implementation("com.google.android.gms:play-services-maps:18.1.0")
+    implementation("com.google.android.libraries.places:places:3.2.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -65,6 +75,8 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.room.compiler)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -72,4 +84,11 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+configurations {
+    create("cleanedAnnotations")
+    implementation {
+        exclude(group = "org.jetbrains", module = "annotations")
+    }
 }

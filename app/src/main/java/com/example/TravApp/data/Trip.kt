@@ -10,5 +10,6 @@ data class Trip(
     val title: String,  // Название поездки
     val start_date: String,  // Дата начала поездки
     val end_date: String,  // Дата окончания поездки
+    val locations: List<String>,
     val created_at: String = System.currentTimeMillis().toString()  // Текущее время в миллисекундах
 )

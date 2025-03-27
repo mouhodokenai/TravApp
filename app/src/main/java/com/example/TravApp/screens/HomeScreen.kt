@@ -21,14 +21,21 @@ class HomeScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            TravelDashboard()
-
+            TravelDashboard(
+                onNavigateToNewTrip = { /* Навигация к экрану создания новой поездки */ },
+                onNavigateToPlans = { /* Навигация к планам */ },
+                onNavigateToArchive = { /* Навигация к архиву */ }
+            )
         }
     }
 }
 
 @Composable
-fun TravelDashboard() {
+fun TravelDashboard(
+    onNavigateToNewTrip: () -> Unit,
+    onNavigateToPlans: () -> Unit,
+    onNavigateToArchive: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -39,16 +46,19 @@ fun TravelDashboard() {
         Text(
             text = "Добрый день!",
             fontSize = 40.sp,
-            fontWeight = FontWeight.Bold)
+            fontWeight = FontWeight.Bold
+        )
 
         Spacer(modifier = Modifier.height(30.dp))
 
         Text(
             text = "Мои достижения",
             fontSize = 30.sp,
-            fontWeight = FontWeight.Bold)
+            fontWeight = FontWeight.Bold
+        )
 
         Spacer(modifier = Modifier.height(30.dp))
+
         // Строка с круглыми карточками статистики
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -58,16 +68,19 @@ fun TravelDashboard() {
             StatCard(label = "Страны", value = 3)
             StatCard(label = "Поездки", value = 7)
         }
+
         Spacer(modifier = Modifier.height(32.dp))
 
         // Карточка "Добавить"
-        CardButton(text = "Добавить", 130, 30, onClick = { /* Навигация или действие */ })
+        CardButton(text = "Добавить", height = 130, font = 30, onClick = onNavigateToNewTrip)
         Spacer(modifier = Modifier.height(25.dp))
 
-        CardButton(text = "Планы", 130, 30, onClick = { /* Навигация */ })
+        // Карточка "Планы"
+        CardButton(text = "Планы", height = 130, font = 30, onClick = onNavigateToPlans)
         Spacer(modifier = Modifier.height(25.dp))
 
-        CardButton(text = "Архив", 130, 30, onClick = { /* Навигация */ })
+        // Карточка "Архив"
+        CardButton(text = "Архив", height = 130, font = 30, onClick = onNavigateToArchive)
     }
 }
 
@@ -93,12 +106,16 @@ fun StatCard(label: String, value: Int) {
     }
 }
 
-/// Кнопка-карточка
+// Кнопка-карточка
 @Composable
-fun CardButton(text: String, height: Int, font: Int, onClick: () -> Unit) {
-    val modifier = Modifier
+fun CardButton(
+    text: String,
+    height: Int,
+    font: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .height(height.dp)
             .clickable { onClick() }
@@ -116,17 +133,13 @@ fun CardButton(text: String, height: Int, font: Int, onClick: () -> Unit) {
     }
 }
 
-@Composable
-fun StatItem(label: String, value: Int) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "$value", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(text = label, fontSize = 14.sp, color = Color.Gray)
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 fun TravelDashboardV() {
-    TravelDashboard()
+    TravelDashboard(
+        onNavigateToNewTrip = {},
+        onNavigateToPlans = {},
+        onNavigateToArchive = {}
+    )
 }
+

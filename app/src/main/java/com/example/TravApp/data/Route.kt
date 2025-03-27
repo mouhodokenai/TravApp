@@ -5,23 +5,29 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 
-@Entity(tableName = "route")
-@TypeConverters(RouteConverters::class) // Указываем, что в этой таблице используется конвертер типов
-data class Route(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,  // Уникальный ID маршрута
-    val name: String,  // Название маршрута
-    val points: List<String> // Список точек маршрута
+import androidx.room.*
+import java.util.*
+
+@Entity(
+    tableName = "route",
+    foreignKeys = [
+        ForeignKey(
+            entity = Trip::class, // Предполагается, что есть класс Trip
+            parentColumns = ["trip_id"],
+            childColumns = ["trip_id"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index(value = ["trip_id"])]
 )
+data class Route(
 
-// Конвертер для хранения списка строк в базе данных
-class RouteConverters {
-    @TypeConverter
-    fun fromList(value: List<String>): String {
-        return value.joinToString(separator = ",") // Преобразуем список в строку, разделяя запятыми
-    }
-
-    @TypeConverter
-    fun toList(value: String): List<String> {
-        return value.split(",") // Преобразуем строку обратно в список
-    }
-}
+    @PrimaryKey val routeId: UUID = UUID.randomUUID(), // ID маршрута (UUID)
+    @ColumnInfo(name = "trip_id") val tripId: UUID, // FK на поездку
+    @ColumnInfo(name = "place_name") val placeName: String, // Название места
+    @ColumnInfo(name = "latitude") val latitude: Double, // Широта
+    @ColumnInfo(name = "longitude") val longitude: Double, // Долгота
+    @ColumnInfo(name = "arrival_time") val arrivalTime: String, // Время прибытия (в формате ISO 8601)
+    @ColumnInfo(name = "departure_time") val departureTime: String, // Время отправления (в формате ISO 8601)
+    @ColumnInfo(name = "order_index") val orderIndex: Int // Порядок точек
+)
