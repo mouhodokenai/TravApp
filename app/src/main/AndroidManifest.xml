@@ -17,6 +17,15 @@
         android:supportsRtl="true"
         tools:targetApi="35">
         <activity
+            android:name="com.example.TravApp.screens.ArchiveScreen"
+            android:exported="false" />
+        <activity
+            android:name="com.example.TravApp.screens.HotelsScreen"
+            android:exported="false" />
+        <activity
+            android:name="com.example.TravApp.screens.TicketScreen"
+            android:exported="false" />
+        <activity
             android:name="com.example.TravApp.screens.PlansScreen"
             android:exported="false" />
         <activity
@@ -32,10 +41,10 @@
         <activity
             android:name="com.example.TravApp.screens.NewTripDetailsScreen"
             android:exported="false" />
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyD2DypCsR3FwKuge2MSkmABGX-JP6YI6nk"/>
-
+            android:value="AIzaSyD2DypCsR3FwKuge2MSkmABGX-JP6YI6nk" />
     </application>
 
 </manifest>

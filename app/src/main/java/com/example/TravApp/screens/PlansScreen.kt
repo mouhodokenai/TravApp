@@ -56,7 +56,7 @@ fun PlanDashboard(
     val trips = listOf(
         Trip(title = "Поездка в Париж", start_date  = "10.05.2025", end_date = "20.05.2025", locations = listOf("Париж", "Версаль")),
         Trip(title = "Горы Кавказа", start_date  = "01.06.2025", end_date = "10.06.2025", locations = listOf("Сочи", "Красная Поляна")),
-        Trip(title = "К Настюше", start_date  = "хз когда", end_date = "надеюсь скоро", locations = listOf("Испания", "Италия")),
+        Trip(title = "К Настюше", start_date  = "01.09.2025", end_date = "10.09.2025", locations = listOf("Испания", "Италия")),
         Trip(title = "Север России", start_date  = "12.12.2025", end_date = "19.12.2025", locations = listOf("Мурманск", "Карелия")),
         Trip(title = "Азия", start_date  = "29.03.2026", end_date = "24.04.2026", locations = listOf("Вьетнам", "Тайланд", "Лаос"))
     )

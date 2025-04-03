@@ -42,14 +42,14 @@ fun TravelDashboard(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(60.dp))
+        Spacer(modifier = Modifier.height(50.dp))
         Text(
             text = "Добрый день!",
             fontSize = 40.sp,
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         Text(
             text = "Мои достижения",
@@ -57,7 +57,7 @@ fun TravelDashboard(
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Строка с круглыми карточками статистики
         Row(
@@ -70,17 +70,15 @@ fun TravelDashboard(
         }
 
         Spacer(modifier = Modifier.height(32.dp))
+        
+        CardButton(text = "Добавить", height = 100, font = 20, onClick = onNavigateToNewTrip)
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // Карточка "Добавить"
-        CardButton(text = "Добавить", height = 130, font = 30, onClick = onNavigateToNewTrip)
-        Spacer(modifier = Modifier.height(25.dp))
+        CardButton(text = "Планы", height = 100, font = 20, onClick = onNavigateToPlans)
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // Карточка "Планы"
-        CardButton(text = "Планы", height = 130, font = 30, onClick = onNavigateToPlans)
-        Spacer(modifier = Modifier.height(25.dp))
 
-        // Карточка "Архив"
-        CardButton(text = "Архив", height = 130, font = 30, onClick = onNavigateToArchive)
+        CardButton(text = "Архив", height = 100, font = 20, onClick = onNavigateToArchive)
     }
 }
 
@@ -88,7 +86,7 @@ fun TravelDashboard(
 @Composable
 fun StatCard(label: String, value: Int) {
     Card(
-        modifier = Modifier.size(100.dp), // Размер карточки
+        modifier = Modifier.size(95.dp), // Размер карточки
         shape = CircleShape,
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF90CAF9)) // Голубой фон
@@ -100,8 +98,8 @@ fun StatCard(label: String, value: Int) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = "$value", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            Text(text = label, fontSize = 20.sp, color = Color.White)
+            Text(text = "$value", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text(text = label, fontSize = 16.sp, color = Color.White)
         }
     }
 }

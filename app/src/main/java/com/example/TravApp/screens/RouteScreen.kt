@@ -52,12 +52,12 @@ import java.util.UUID
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import androidx.compose.material3.CircularProgressIndicator
-
+import androidx.compose.ui.tooling.preview.Preview
 
 
 @Composable
 fun RouteScreen(
-    onPlaceSelected: (String) -> Unit,
+    onPlaceSelected: (String, LatLng) -> Unit, // Добавляем координаты
     onBack: () -> Unit
 ) {
     var query by remember { mutableStateOf("") }
@@ -67,10 +67,12 @@ fun RouteScreen(
     val coroutineScope = rememberCoroutineScope()
     val tripId = UUID.randomUUID()
 
+    val selectedPlace = remember { mutableStateOf<LatLng?>(null) } // Храним выбранное место
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White) // Исправляем прозрачность
+            .background(Color.White)
             .padding(16.dp)
     ) {
         Row(
@@ -104,8 +106,7 @@ fun RouteScreen(
                     IconButton(onClick = {
                         coroutineScope.launch {
                             isLoading = true
-                            val newQuery = query.trim() // Убираем лишние пробелы
-                            searchResults = searchPlaces(newQuery, tripId, context)
+                            searchResults = searchPlaces(query.trim(), tripId, context)
                             isLoading = false
                         }
                     }) {
@@ -117,16 +118,25 @@ fun RouteScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Карта Google Maps
         val cameraPositionState = rememberCameraPositionState {
-            position = CameraPosition.fromLatLngZoom(LatLng(55.751244, 37.618423), 10f) // Москва по умолчанию
+            position = CameraPosition.fromLatLngZoom(LatLng(55.751244, 37.618423), 10f) // Москва
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
             GoogleMap(
                 modifier = Modifier.matchParentSize(),
-                cameraPositionState = cameraPositionState
+                cameraPositionState = cameraPositionState,
+                onMapClick = { latLng ->
+                    selectedPlace.value = latLng
+                }
             ) {
+                selectedPlace.value?.let { place ->
+                    Marker(
+                        state = rememberMarkerState(position = place),
+                        title = "Выбранное место"
+                    )
+                }
+
                 searchResults.forEach { place ->
                     Marker(
                         state = rememberMarkerState(position = LatLng(place.latitude, place.longitude)),
@@ -143,14 +153,29 @@ fun RouteScreen(
             ) {
                 items(searchResults) { place ->
                     PlaceItem(placeName = place.placeName) {
-                        onPlaceSelected(place.placeName)
-                        cameraPositionState.position = CameraPosition.fromLatLngZoom(LatLng(place.latitude, place.longitude), 15f)
+                        onPlaceSelected(place.placeName, LatLng(place.latitude, place.longitude))
+                        cameraPositionState.position =
+                            CameraPosition.fromLatLngZoom(LatLng(place.latitude, place.longitude), 15f)
                     }
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        selectedPlace.value?.let { place ->
+            Button(
+                onClick = {
+                    onPlaceSelected("Выбранное место", place) // Передаем название и координаты
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Добавить в маршрут")
+            }
+        }
     }
 }
+
 
 @Composable
 fun PlaceItem(placeName: String, onSelect: () -> Unit) {
@@ -184,7 +209,7 @@ suspend fun searchPlaces(query: String, tripId: UUID, context: Context): List<Ro
                         Route(
                             tripId = tripId,
                             placeName = prediction.getPrimaryText(null).toString(),
-                            latitude = 0.0,  // Пока не заполняем, координаты получим позже
+                            latitude = 0.0,
                             longitude = 0.0,
                             arrivalTime = "",
                             departureTime = "",
@@ -216,4 +241,13 @@ suspend fun getPlaceDetails(placeId: String, context: Context): LatLng? {
                 continuation.resume(null)
             }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewRouteScreen() {
+    RouteScreen(
+        onPlaceSelected = TODO(),
+        onBack = TODO()
+    )
 }
