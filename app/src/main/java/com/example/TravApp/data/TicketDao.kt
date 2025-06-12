@@ -10,14 +10,21 @@ import java.util.UUID
 @Dao
 interface TicketDao {
     @Insert
-    suspend fun insert(trip: Ticket)
+    suspend fun insert(ticket: Ticket)
 
     @Update
-    suspend fun update(trip: Ticket)
+    suspend fun update(ticket: Ticket)
 
     @Delete
-    suspend fun delete(trip: Ticket)
+    suspend fun delete(ticket: Ticket)
 
-    @Query("SELECT * FROM tikets WHERE tiket_id = :tripId")
-    suspend fun getTicketById(tripId: UUID): Ticket?
+    @Query("SELECT * FROM tickets WHERE trip_id = :tripId")
+    suspend fun getByTripId(tripId: Long): List<Ticket>
+
+    @Query("DELETE FROM tickets")
+    suspend fun deleteAllTickets()
 }
+
+
+
+

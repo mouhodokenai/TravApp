@@ -11,7 +11,7 @@ import java.util.UUID
 @Dao
 interface TripDao {
     @Insert
-    suspend fun insert(trip: Trip)
+    suspend fun insert(trip: Trip): Long
 
     @Update
     suspend fun update(trip: Trip)
@@ -20,5 +20,16 @@ interface TripDao {
     suspend fun delete(trip: Trip)
 
     @Query("SELECT * FROM trip")
-    suspend fun getAllTrips(): Flow<List<Trip>>
+    suspend fun getAllTrips(): List<Trip>
+
+    @Query("SELECT * FROM trip")
+    fun getAllTrips2(): Flow<List<Trip>>
+
+    @Query("SELECT * FROM trip WHERE trip_id = :tripId")
+    suspend fun getByTripId(tripId: Long): Trip
+
+    @Query("DELETE FROM trip")
+    suspend fun deleteAllTrips()
 }
+
+

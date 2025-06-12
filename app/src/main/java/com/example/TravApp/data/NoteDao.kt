@@ -10,12 +10,22 @@ import java.util.UUID
 @Dao
 interface NoteDao {
     @Insert
-    suspend fun insert(trip: Note)
+    suspend fun insert(note: Note)
 
     @Update
-    suspend fun update(trip: Note)
+    suspend fun update(note: Note)
 
     @Delete
-    suspend fun delete(trip: Note)
+    suspend fun delete(note: Note)
 
+    @Query("SELECT * FROM notes WHERE trip_id = :tripId")
+    suspend fun getByTripId(tripId: Long): List<Note>
+
+    @Query("SELECT * FROM notes")
+    suspend fun getAll(): List<Note>
+
+    @Query("DELETE FROM notes")
+    suspend fun deleteAllNotes()
 }
+
+

@@ -10,14 +10,22 @@ import java.util.UUID
 @Dao
 interface PackingListDao {
     @Insert
-    suspend fun insert(trip: PackingList)
+    suspend fun insert(item: PackingList)
 
     @Update
-    suspend fun update(trip: PackingList)
+    suspend fun update(item: PackingList)
 
     @Delete
-    suspend fun delete(trip: PackingList)
+    suspend fun delete(item: PackingList)
 
-    @Query("SELECT * FROM packingList WHERE item_id = :itemId") //???
-    suspend fun getTicketById(tripId: UUID): PackingList?  //???
+    @Query("SELECT * FROM packing_list")
+    suspend fun getAll(): List<PackingList>
+
+    @Query("SELECT * FROM packing_list WHERE trip_id = :tripId")
+    suspend fun getByTripId(tripId: Long): List<PackingList>
+
+    @Query("DELETE FROM trip")
+    suspend fun deleteAllPackingItems()
 }
+
+

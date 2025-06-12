@@ -1,21 +1,30 @@
 package com.example.TravApp.screens
 
+import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.TravApp.data.Stats
+import com.example.TravApp.data.TravViewModel
+import com.example.TravApp.data.TravViewModelFactory
 
 class HomeScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,17 +45,25 @@ fun TravelDashboard(
     onNavigateToPlans: () -> Unit,
     onNavigateToArchive: () -> Unit
 ) {
+    val context = LocalContext.current
+    val vmFactory =
+        TravViewModelFactory(context.applicationContext as Application)
+    val viewModel: TravViewModel = viewModel(factory = vmFactory)
+    val stats by viewModel.getStats(context).collectAsState(initial = Stats(0, 0, 0))
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .background(Color(0xFFFFF1D7)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(50.dp))
         Text(
             text = "Добрый день!",
             fontSize = 40.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF140800)
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -64,9 +81,9 @@ fun TravelDashboard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            StatCard(label = "Города", value = 10)
-            StatCard(label = "Страны", value = 3)
-            StatCard(label = "Поездки", value = 7)
+            StatCard(label = "Города", value = stats.cityCount)
+            StatCard(label = "Страны", value = stats.countryCount)
+            StatCard(label = "Поездки", value = stats.tripCount)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -79,6 +96,9 @@ fun TravelDashboard(
 
 
         CardButton(text = "Архив", height = 100, font = 20, onClick = onNavigateToArchive)
+
+
+
     }
 }
 
@@ -89,12 +109,13 @@ fun StatCard(label: String, value: Int) {
         modifier = Modifier.size(95.dp), // Размер карточки
         shape = CircleShape,
         elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF90CAF9)) // Голубой фон
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF2AFC98)) // Голубой фон
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
+                .padding(8.dp)
+                .background(Color(0xFF2AFC98)),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -123,7 +144,7 @@ fun CardButton(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF90CAF9))
     ) {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().background(Color(0xFFAFDBF5)),
             contentAlignment = Alignment.Center
         ) {
             Text(text = text, fontSize = font.sp, fontWeight = FontWeight.Bold, color = Color.White)

@@ -20,12 +20,6 @@
             android:name="com.example.TravApp.screens.ArchiveScreen"
             android:exported="false" />
         <activity
-            android:name="com.example.TravApp.screens.HotelsScreen"
-            android:exported="false" />
-        <activity
-            android:name="com.example.TravApp.screens.TicketScreen"
-            android:exported="false" />
-        <activity
             android:name="com.example.TravApp.screens.PlansScreen"
             android:exported="false" />
         <activity

@@ -1,20 +1,25 @@
 package com.example.testapp
+import android.app.Application
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavType
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import com.example.TravApp.data.TravViewModel
+import com.example.TravApp.data.TravViewModelFactory
+import com.example.TravApp.screens.BaggageEntryScreen
 import com.example.TravApp.screens.ArchiveDashboard
+import com.example.TravApp.screens.BudgetEntryScreen
 import com.example.TravApp.screens.HotelEntryScreen
 import com.example.TravApp.screens.NewTrip
 import com.example.TravApp.screens.NewTripDetails
+import com.example.TravApp.screens.NoteScreen
 import com.example.TravApp.screens.PlanDashboard
 import com.example.TravApp.screens.RouteScreen
 import com.example.TravApp.screens.TicketEntryScreen
@@ -28,6 +33,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             TravAppTheme {
                 val navController = rememberNavController()
+                val context = LocalContext.current
+                val vmFactory =
+                    TravViewModelFactory(context.applicationContext as Application)
+                val viewModel: TravViewModel = viewModel(factory = vmFactory)
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -42,92 +51,112 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("plan") {
                             PlanDashboard(
+                                viewModel = viewModel,
                                 onNavigateToNewTrip = { navController.navigate("new") },
+                                onNavigateToEditTrip = {Id, tripName -> navController.navigate("new_details/$Id/$tripName") },
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
                         composable("archive") {
                             ArchiveDashboard(
+                                viewModel = viewModel,
                                 onNavigateToNewTrip = { navController.navigate("new") },
+                                onNavigateToEditTrip = {Id, tripName -> navController.navigate("new_details/$Id/$tripName") },
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
                         composable("new") {
                             NewTrip(
-                                onNavigateToDetails = { tripName, startDate, endDate ->
-                                    navController.navigate("new_details/$tripName/$startDate/$endDate")
-                                },
+                                viewModel = viewModel,
+                                onNavigateToDetails = {Id, tripName -> navController.navigate("new_details/$Id/$tripName") },
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
-                        composable("route") {
-                            RouteScreen(
-                                onPlaceSelected = { placeName, latLng ->
-                                    navController.previousBackStackEntry
-                                        ?.savedStateHandle
-                                        ?.set("selectedPlace", Pair(placeName, latLng)) // Передаём пару (название, координаты)
-                                    navController.popBackStack()
-                                },
-                                onBack = { navController.popBackStack() }
-                            )
-                        }
-                        composable("tickets") {
-                            Log.d("Navigation", "TicketEntryScreen открывается")
-                            TicketEntryScreen(
-                                onSelected = { departureCity, arrivalCity ->
-                                    Log.d("Navigation", "Before navigate: ${navController.currentBackStackEntry?.destination?.route}")
-                                    navController.previousBackStackEntry
-                                        ?.savedStateHandle
-                                        ?.set("selectedTicket", Pair(departureCity, arrivalCity))
-                                    navController.popBackStack()
-                                    Log.d("Navigation", "After navigate: ${navController.currentBackStackEntry?.destination?.route}")
-                                },
-                                onBack = { navController.popBackStack() }
-                            )
-                        }
-                        composable("hotels") {
-                            HotelEntryScreen(
-                                onSave = { name ->
-
-                                    navController.previousBackStackEntry
-                                        ?.savedStateHandle
-                                        ?.set("selectedTicket", name)
-
-                                    navController.popBackStack()
-                                },
-                                onBack = { navController.popBackStack() }
-                            )
-                        }
-
-                        composable(
-                            "new_details/{tripName}/{startDate}/{endDate}",
-                            arguments = listOf(
-                                navArgument("tripName") { type = NavType.StringType },
-                                navArgument("startDate") { type = NavType.StringType },
-                                navArgument("endDate") { type = NavType.StringType }
-                            )
-                        ) { backStackEntry ->
-                            val tripName = backStackEntry.arguments?.getString("tripName") ?: ""
-                            val startDate = backStackEntry.arguments?.getString("startDate") ?: ""
-                            val endDate = backStackEntry.arguments?.getString("endDate") ?: ""
-
+                        composable("new_details/{Id}/{tripName}",) {
+                                backStackEntry ->
+                            val tripId = backStackEntry.arguments?.getLong("Id") ?: 0
+                            val title = backStackEntry.arguments?.getString("tripName") ?: "No"
                             NewTripDetails(
-                                tripName = tripName,
-                                startDate = startDate,
-                                endDate = endDate,
+                                title = title,
+                                tripId = tripId,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToRoute = { navController.navigate("route") },
-                                onNavigateToTickets = { navController.navigate("tickets")},
-                                onNavigateToHotels = { navController.navigate("hotels")},
-                                onNavigateToBudget = { navController.navigate("budget")},
-                                onNavigateToBaggage = { navController.navigate("baggage")},
-                                onNavigateToNotes = { navController.navigate("notes")}
+                                onNavigateHome = {navController.navigate("home")}
                             )
                         }
+                        composable("route/{tripId}") { backStackEntry ->
+                            val tripId =
+                                backStackEntry.arguments?.getString("tripId")?.toLongOrNull()
+                                    ?: return@composable
 
+                            RouteScreen(
+                                viewModel = viewModel,
+                                tripId = tripId,
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable("tickets/{tripId}") {
+                                backStackEntry ->
+                            val tripId =
+                                backStackEntry.arguments?.getString("tripId")?.toIntOrNull()
+                                    ?: return@composable
+
+                            TicketEntryScreen(
+                                viewModel = viewModel,
+                                tripId = tripId.toLong(),
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable("hotels/{tripId}") {
+                                backStackEntry ->
+                            val tripId =
+                                backStackEntry.arguments?.getString("tripId")?.toLongOrNull()
+                                    ?: return@composable
+
+                            HotelEntryScreen(
+                                viewModel = viewModel,
+                                tripId = tripId,
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable("budget") {
+                                backStackEntry ->
+                            val tripId =
+                                backStackEntry.arguments?.getString("tripId")?.toLongOrNull()
+                                    ?: return@composable
+                            BudgetEntryScreen(
+                                viewModel = viewModel,
+                                tripId = tripId,
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable("baggage/{tripId}") {
+                                backStackEntry ->
+                            val tripId =
+                                backStackEntry.arguments?.getString("tripId")?.toLongOrNull()
+                                    ?: return@composable
+
+                            BaggageEntryScreen(
+                                viewModel = viewModel,
+                                tripId = tripId,
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable("note/{tripId}") {
+                            backStackEntry ->
+                            val tripId =
+                                backStackEntry.arguments?.getString("tripId")?.toLongOrNull()
+                                    ?: return@composable
+
+                            NoteScreen(
+                                viewModel = viewModel,
+                                tripId = tripId,
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
                     }
                 }
             }
         }
     }
 }
+

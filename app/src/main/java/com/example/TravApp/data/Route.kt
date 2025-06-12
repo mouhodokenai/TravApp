@@ -8,26 +8,25 @@ import androidx.room.TypeConverters
 import androidx.room.*
 import java.util.*
 
-@Entity(
-    tableName = "route",
+
+@Entity(tableName = "route",
     foreignKeys = [
         ForeignKey(
-            entity = Trip::class, // Предполагается, что есть класс Trip
+            entity = Trip::class,
             parentColumns = ["trip_id"],
-            childColumns = ["trip_id"],
+            childColumns = ["tripId"],
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["trip_id"])]
+    indices = [Index(value = ["tripId"])]
 )
 data class Route(
-
-    @PrimaryKey val routeId: UUID = UUID.randomUUID(), // ID маршрута (UUID)
-    @ColumnInfo(name = "trip_id") val tripId: UUID, // FK на поездку
-    @ColumnInfo(name = "place_name") val placeName: String, // Название места
-    @ColumnInfo(name = "latitude") val latitude: Double, // Широта
-    @ColumnInfo(name = "longitude") val longitude: Double, // Долгота
-    @ColumnInfo(name = "arrival_time") val arrivalTime: String, // Время прибытия (в формате ISO 8601)
-    @ColumnInfo(name = "departure_time") val departureTime: String, // Время отправления (в формате ISO 8601)
-    @ColumnInfo(name = "order_index") val orderIndex: Int // Порядок точек
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "route_id") val routeId: Int = 0,
+    @ColumnInfo(name = "tripId") val tripId: Long,
+    @ColumnInfo(name = "place") val placeName: String,
+    @ColumnInfo(name = "latitude") val latitude: Double,
+    @ColumnInfo(name = "longitude") val longitude: Double,
+    @ColumnInfo(name = "orderIndex") val orderIndex: Int? = null
 )
+

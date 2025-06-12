@@ -1,86 +1,72 @@
 package com.example.TravApp.screens
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
+import android.app.Application
+import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.TravApp.data.TravViewModel
+import com.example.TravApp.data.TravViewModelFactory
+import com.example.testapp.R
 
-class NewTripDetailsScreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        val tripName = intent.getStringExtra("trip_name") ?: "Без названия"
-        val startDate = intent.getStringExtra("trip_departure_date") ?: "нет"
-        val endDate = intent.getStringExtra("trip_return_date") ?: "нет"
-
-        setContent {
-            NewTripDetails(
-                tripName = tripName,
-                startDate = startDate,
-                endDate = endDate,
-                onNavigateBack = { finish() },
-                onNavigateToRoute = { /* Обработчик навигации к маршруту */ },
-                onNavigateToTickets = {},
-                onNavigateToHotels = {},
-                onNavigateToBudget = {},
-                onNavigateToBaggage = {},
-                onNavigateToNotes = {}
-            )
-        }
-    }
-}
 
 @Composable
 fun NewTripDetails(
-    tripName: String,
-    startDate: String,
-    endDate: String,
+    title: String,
+    tripId: Long,
     onNavigateBack: () -> Unit,
-    onNavigateToRoute: () -> Unit,
-    onNavigateToTickets: () -> Unit,
-    onNavigateToHotels: () -> Unit,
-    onNavigateToBudget: () -> Unit,
-    onNavigateToBaggage: () -> Unit,
-    onNavigateToNotes: () -> Unit
+    onNavigateHome: () -> Unit
 ) {
+
+    val context = LocalContext.current.applicationContext as Application
+        val viewModel: TravViewModel = viewModel(
+        factory = TravViewModelFactory(context)
+    )
+
     var showRouteScreen by remember { mutableStateOf(false) }
     var showTicketScreen by remember { mutableStateOf(false) }
     var showHotelScreen by remember { mutableStateOf(false) }
     var showBudgetScreen by remember { mutableStateOf(false) }
     var showBaggageScreen by remember { mutableStateOf(false) }
     var showNotesScreen by remember { mutableStateOf(false) }
-    val places = remember { mutableStateListOf<String>() } // список мест
-    val tickets = remember { mutableStateListOf<String>() } // список билетов
-    val hotels = remember { mutableStateListOf<String>() } // список отелей
-    val budgets = remember { mutableStateListOf<String>() } // список бюджета
-    val clothes = remember { mutableStateListOf<String>() } // список багажа
+    val places = remember { mutableStateListOf<String>() } // список мест *
+    val tickets = remember { mutableStateListOf<String>() } // список билетов *
+    val hotels = remember { mutableStateListOf<String>() }
+    val budgets = remember { mutableStateListOf<String>() } // список бюджета *
+    val clothes = remember { mutableStateListOf<String>() } // список багажа *
     val notes = remember { mutableStateListOf<String>() } // список заметок
 
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .background(Color(0xFFFFF1D7)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = tripName, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+
+            Text(
+                text = title,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+            )
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -95,8 +81,8 @@ fun NewTripDetails(
         )
 
         HotelCard(
-            hotels = hotels,
-            onNavigateToHotels = { showHotelScreen = true}
+            items = hotels,
+            onNavigateToHotels = { showHotelScreen = true }
         )
 
         BudgetCard(
@@ -117,9 +103,9 @@ fun NewTripDetails(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { /* Сохранение данных */ },
+            onClick = {onNavigateHome()},
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF90CAF9)
+                containerColor = Color(0xFFAFDBF5)
             )
         ) {
             Text(text = "Сохранить")
@@ -129,29 +115,46 @@ fun NewTripDetails(
 
     if (showRouteScreen) {
         RouteScreen(
-            onPlaceSelected = { placeName, latLng ->
-                places.add(placeName)
-                showRouteScreen = false
-            },
+            viewModel = viewModel,
+            tripId = tripId,
             onBack = { showRouteScreen = false }
         )
     }
     if (showTicketScreen) {
         TicketEntryScreen(
-            onSelected = { departureCity, arrivalCity ->
-                tickets.add(departureCity + " -> " + arrivalCity)
-                showRouteScreen = false
-            },
+            viewModel = viewModel,
+            tripId = tripId,
             onBack = { showTicketScreen = false }
         )
     }
+
     if (showHotelScreen) {
         HotelEntryScreen(
-            onSave = { name ->
-                hotels.add(name)
-                showRouteScreen = false
-            },
-            onBack = { showTicketScreen = false }
+            viewModel = viewModel,
+            tripId = tripId,
+            onBack = { showHotelScreen = false }
+        )
+    }
+    if (showBudgetScreen) {
+        BudgetEntryScreen(
+            viewModel = viewModel,
+            tripId = tripId,
+            onBack = { showBudgetScreen = false }
+        )
+    }
+    if (showNotesScreen) {
+        NoteScreen(
+            viewModel = viewModel,
+            tripId = tripId,
+            onBack = { showNotesScreen = false }
+        )
+    }
+
+    if (showBaggageScreen) {
+        BaggageEntryScreen(
+            viewModel = viewModel,
+            tripId = tripId,
+            onBack = { showBaggageScreen = false }
         )
     }
 }
@@ -168,7 +171,10 @@ fun RouteCard(
             .fillMaxWidth()
             .padding(6.dp),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFE2CDE2)
+        )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -177,7 +183,11 @@ fun RouteCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = "Маршрут", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Icon(imageVector = Icons.Default.Menu, contentDescription = "Маршрут")
+                Icon(
+                    painter = painterResource(id = R.drawable.route),
+                    contentDescription = "Маршрут",
+                    modifier = Modifier.size(35.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -214,7 +224,10 @@ fun TicketCard(
             .fillMaxWidth()
             .padding(6.dp),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFE2CDE2)
+        )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -223,7 +236,11 @@ fun TicketCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = "Транспорт", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Icon(imageVector = Icons.Default.Menu, contentDescription = "Маршрут")
+                Icon(
+                    painter = painterResource(id = R.drawable.airplane),
+                    contentDescription = "Самолет",
+                    modifier = Modifier.size(35.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -252,7 +269,7 @@ fun TicketCard(
 @Composable
 fun HotelCard(
     modifier: Modifier = Modifier,
-    hotels: List<String>,
+    items: List<String>,
     onNavigateToHotels: () -> Unit
 ) {
     Card(
@@ -260,7 +277,10 @@ fun HotelCard(
             .fillMaxWidth()
             .padding(6.dp),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFE2CDE2)
+        )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -269,12 +289,16 @@ fun HotelCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = "Жилье", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Icon(imageVector = Icons.Default.Menu, contentDescription = "Жилье")
+                Icon(
+                    painter = painterResource(id = R.drawable.hotel),
+                    contentDescription = "Отель",
+                    modifier = Modifier.size(35.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            hotels.forEach { hotel ->
+            items.forEach { hotel ->
                 Text(text = hotel, fontSize = 14.sp, modifier = Modifier.padding(vertical = 2.dp))
             }
 
@@ -306,7 +330,10 @@ fun BudgetCard(
             .fillMaxWidth()
             .padding(6.dp),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFE2CDE2)
+        )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -315,7 +342,11 @@ fun BudgetCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = "Бюджет", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Icon(imageVector = Icons.Default.Menu, contentDescription = "Бюджет")
+                Icon(
+                    painter = painterResource(id = R.drawable.wallet),
+                    contentDescription = "Бюджет",
+                    modifier = Modifier.size(35.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -324,7 +355,7 @@ fun BudgetCard(
                 Text(text = budget, fontSize = 14.sp, modifier = Modifier.padding(vertical = 2.dp))
             }
 
-            Spacer(modifier = Modifier.height(6.dp)) //   отступ
+            Spacer(modifier = Modifier.height(6.dp))
 
             Row(
                 modifier = Modifier
@@ -333,58 +364,12 @@ fun BudgetCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Добавить")
-                Spacer(modifier = Modifier.width(6.dp)) // Уменьшен отступ
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(text = "Добавить", fontSize = 14.sp, fontWeight = FontWeight.Medium)
             }
         }
     }
 }
-
-
-@Composable
-fun BaggageCard(
-    modifier: Modifier = Modifier,
-    clothes: List<String>,
-    onNavigateToBaggage: () -> Unit
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(6.dp),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = "Вещи", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Icon(imageVector = Icons.Default.Menu, contentDescription = "Багаж")
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            clothes.forEach { clothe ->
-                Text(text = clothe, fontSize = 14.sp, modifier = Modifier.padding(vertical = 2.dp))
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onNavigateToBaggage() },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Добавить")
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(text = "Добавить", fontSize = 14.sp, fontWeight = FontWeight.Medium) //  шрифт кнопки
-            }
-        }
-    }
-}
-
 
 @Composable
 fun NoteCard(
@@ -397,7 +382,10 @@ fun NoteCard(
             .fillMaxWidth()
             .padding(6.dp),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFE2CDE2)
+        )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -406,7 +394,11 @@ fun NoteCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = "Заметки", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Icon(imageVector = Icons.Default.Menu, contentDescription = "Заметки")
+                Icon(
+                    painter = painterResource(id = R.drawable.notes),
+                    contentDescription = "Заметки",
+                    modifier = Modifier.size(35.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -431,53 +423,64 @@ fun NoteCard(
     }
 }
 
-
 @Composable
-fun ExpandableSection(title: String) {
-    var expanded by remember { mutableStateOf(false) }
-    var text by remember { mutableStateOf("") }
+fun BaggageCard(
+    modifier: Modifier = Modifier,
+    clothes: List<String>,
+    onNavigateToBaggage: () -> Unit
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(6.dp),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFE2CDE2)
+        )
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = "Вещи", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Icon(
+                    painter = painterResource(id = R.drawable.suitcase),
+                    contentDescription = "Багаж",
+                    modifier = Modifier.size(35.dp)
+                )
+            }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded }
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Medium)
-            Spacer(modifier = Modifier.weight(1f))
-        }
+            Spacer(modifier = Modifier.height(6.dp))
 
-        AnimatedVisibility(visible = expanded) {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
+            clothes.forEach { clothe ->
+                Text(text = clothe, fontSize = 14.sp, modifier = Modifier.padding(vertical = 2.dp))
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp),
-                placeholder = { Text("Введите данные...") }
-            )
+                    .clickable { onNavigateToBaggage() },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = "Добавить")
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(text = "Добавить", fontSize = 14.sp, fontWeight = FontWeight.Medium) //  шрифт кнопки
+            }
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun NewTripDetailsPreview() {
-    NewTripDetails(
-        tripName = "Путешествие в Париж",
-        startDate = "10.06.2025",
-        endDate = "20.06.2025",
-        onNavigateBack = {},
-        onNavigateToRoute = {},
-        onNavigateToTickets = {},
-        onNavigateToHotels = {},
-        onNavigateToBudget = {},
-        onNavigateToBaggage = {},
-        onNavigateToNotes = {}
-    )
-}
+
+
+
+
+
+
+
 
 
 

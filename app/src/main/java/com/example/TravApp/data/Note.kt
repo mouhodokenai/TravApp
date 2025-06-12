@@ -1,13 +1,29 @@
 package com.example.TravApp.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
 
-@Entity(tableName = "notes")
-data class Note(
-    @PrimaryKey val note_id: UUID = UUID.randomUUID(),  // Уникальный ID заметки
-    val trip_id: UUID,  // Ссылка на поездку
-    val content: String,  // Содержание заметки
-    val created_at: String = System.currentTimeMillis().toString()  // Текущее время в миллисекундах
+@Entity(tableName = "notes",
+    foreignKeys = [
+        ForeignKey(
+            entity = Trip::class,
+            parentColumns = ["trip_id"],
+            childColumns = ["trip_id"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index(value = ["trip_id"])]
 )
+data class Note(
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "note_id") val note_id: Int = 0,
+    @ColumnInfo(name = "trip_id") val tripId: Long,
+    @ColumnInfo(name = "title") val title: String,
+    @ColumnInfo(name = "content") val content: String,
+)
+
+

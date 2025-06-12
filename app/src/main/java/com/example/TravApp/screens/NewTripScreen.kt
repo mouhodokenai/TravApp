@@ -1,10 +1,10 @@
 package com.example.TravApp.screens
 
 import android.app.DatePickerDialog
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,19 +17,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.TravApp.data.TravViewModel
+import com.example.TravApp.data.Trip
 import com.example.testapp.R
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.abs
 
 @Composable
 fun NewTrip(
-    onNavigateToDetails: (tripName: String, startDate: Date?, endDate: Date?) -> Unit, // Передаем данные
-    onNavigateBack: () -> Unit) {
-
+    viewModel: TravViewModel,
+    onNavigateToDetails: (tripId: Long, tripName: String) -> Unit,
+    onNavigateBack: () -> Unit
+) {
     var tripName by remember { mutableStateOf("") }
     var departureDate by remember { mutableStateOf<Date?>(null) }
     var returnDate by remember { mutableStateOf<Date?>(null) }
@@ -37,22 +39,26 @@ fun NewTrip(
     val context = LocalContext.current
     val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
 
-    val daysBetween = remember(departureDate, returnDate) {
-        if (departureDate != null && returnDate != null) {
-            val diff = returnDate!!.time - departureDate!!.time
-            abs((diff / (1000 * 60 * 60 * 24)).toInt())
-        } else {
-            null
-        }
+    val isDateRangeValid = remember(departureDate, returnDate) {
+        departureDate != null && returnDate != null && !returnDate!!.before(departureDate)
     }
+
+    val daysBetween = remember(departureDate, returnDate) {
+        if (isDateRangeValid) {
+            val diff = returnDate!!.time - departureDate!!.time
+            (diff / (1000 * 60 * 60 * 24)).toInt()
+        } else null
+    }
+
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .background(Color(0xFFFFF1D7)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Spacer(modifier = Modifier.height(60.dp))
 
         Text(
@@ -66,28 +72,26 @@ fun NewTrip(
         TextField(
             value = tripName,
             onValueChange = { tripName = it },
-            placeholder = { Text("Название", fontSize = 25.sp) },
+            placeholder = {
+                Text("Название", fontSize = 25.sp, color = Color(0xFF101419))
+            },
             textStyle = androidx.compose.ui.text.TextStyle(
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                fontSize = 25.sp,
+                color = Color(0xFF101419)
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.2f),
+                .fillMaxHeight(0.2f)
+                .background(Color(0xFF2AFC98)),
             singleLine = true
         )
 
         Spacer(modifier = Modifier.height(25.dp))
 
-        Text(
-            text = "дата туда",
-            fontSize = 25.sp,
-            fontWeight = FontWeight.Normal,
-            textAlign = TextAlign.Left,
-            modifier = Modifier.fillMaxWidth()
-        )
+        Text("дата туда", fontSize = 25.sp, modifier = Modifier.fillMaxWidth())
         Spacer(modifier = Modifier.height(5.dp))
 
-        // Выбор даты отправления
         DatePickerCard(
             text = departureDate?.let { dateFormat.format(it) } ?: "Выбрать дату",
             height = 60,
@@ -96,16 +100,9 @@ fun NewTrip(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "дата обратно",
-            fontSize = 25.sp,
-            fontWeight = FontWeight.Normal,
-            textAlign = TextAlign.Left,
-            modifier = Modifier.fillMaxWidth()
-        )
-
+        Text("дата обратно", fontSize = 25.sp, modifier = Modifier.fillMaxWidth())
         Spacer(modifier = Modifier.height(5.dp))
-        // Выбор даты возвращения
+
         DatePickerCard(
             text = returnDate?.let { dateFormat.format(it) } ?: "Выбрать дату",
             height = 60,
@@ -114,8 +111,11 @@ fun NewTrip(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Вывод количества дней в поездке
-        Text(text = daysBetween?.let { "$it дней" } ?: "", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text(
+            text = daysBetween?.let { "$it дней" } ?: "",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
 
         Spacer(modifier = Modifier.height(35.dp))
 
@@ -123,9 +123,37 @@ fun NewTrip(
             text = "Далее",
             height = 60,
             font = 25,
-            onClick = { onNavigateToDetails(tripName, departureDate, returnDate)  }
+            onClick = {
+                when {
+                    tripName.isBlank() -> {
+                        Toast.makeText(context, "Введите название поездки", Toast.LENGTH_SHORT).show()
+                    }
+                    departureDate == null -> {
+                        Toast.makeText(context, "Выберите дату отправления", Toast.LENGTH_SHORT).show()
+                    }
+                    returnDate == null -> {
+                        Toast.makeText(context, "Выберите дату возвращения", Toast.LENGTH_SHORT).show()
+                    }
+                    returnDate!!.before(departureDate) -> {
+                        Toast.makeText(context, "Дата возвращения не может быть раньше даты отправления", Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        coroutineScope.launch {
+                            viewModel.addTrip(
+                                Trip(
+                                    title = tripName,
+                                    start_date = departureDate!!.toString(),
+                                    end_date = returnDate!!.toString()
+                                )
+                            ) { tripId ->
+                                Log.d("MyApp", "tripId = $tripId")  // <-- вывод в лог
+                                onNavigateToDetails(tripId, tripName)
+                            }
+                        }
+                    }
+                }
+            }
         )
-
     }
 }
 
@@ -170,20 +198,19 @@ fun DatePickerCard(
             Image(
                 painter = painterResource(id = R.drawable.calendar_date),
                 contentDescription = "Выбор даты",
-                modifier = Modifier.size(30.dp) // Размер иконки
+                modifier = Modifier.size(30.dp)
             )
-            Text(text = text, fontSize = font.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-
+            Text(
+                text = text,
+                fontSize = font.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewNewTripScreen() {
-    NewTrip(
-        onNavigateToDetails = { _, _, _ -> },
-        onNavigateBack = {}
-    )
-}
+
